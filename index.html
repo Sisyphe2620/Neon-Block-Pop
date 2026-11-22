@@ -1447,6 +1447,7 @@ function setTray(i,p,animate){
 }
 
 function newGame(){
+  GOAL=9+level;   /* level 1 needs 10 lines, level 2 needs 11, and so on */
   musicUp();
   clearBoardMeshes();
   grid=emptyGrid();
@@ -2283,7 +2284,7 @@ function restore(data){
   clearBoardMeshes();
   grid=emptyGrid();
   for(var r=0;r<N;r++)for(var c=0;c<N;c++){var x=data.grid[r][c];if(x){var cell={t:x.t,color:x.color,hp:x.hp};grid[r][c]=cell;addCellMesh(cell,r,c)}}
-  level=data.level||1;applyBadge();shuffles=data.shuf==null?3:data.shuf;shufUi();
+  level=data.level||1;GOAL=9+level;applyBadge();shuffles=data.shuf==null?3:data.shuf;shufUi();
   score=data.score||0;lines=data.lines||0;coins=data.coins||0;streak=data.streak||0;won=!!data.won;over=false;
   pieces=data.pieces;introOn=false;firstSet=false;drag=null;
   for(var i=0;i<3;i++)setTray(i,pieces[i],false);
