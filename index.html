@@ -1345,13 +1345,14 @@ function rebuildAudio(){   /* last resort: the old engine will not wake (iOS 'in
   }catch(e){AC=null}
   lastRebuild=Date.now();audioStale=false;
   musicSync();
+  setTimeout(function(){if(AC&&AC.state!=='running')audioStale=true},700);   /* still asleep? then the next touch tries again */
 }
 function wakeAudio(fromTouch){
   if(!AC||document.hidden)return;
   try{
-    if(AC.state==='running'){audioStale=false;if(MU.timer)MU.t=Math.max(MU.t,AC.currentTime+.08);musicSync();return}
-    if(AC.state==='closed'||audioStale&&fromTouch||fromTouch&&Date.now()-lastRebuild>700){rebuildAudio();return}
-    var pr=AC.resume();if(pr&&pr.catch)pr.catch(function(){});
+    /* after a trip to the background iOS can still say 'running' while nothing is audible, so the first touch always builds a fresh engine */
+    if(AC.state==='closed'||fromTouch&&(audioStale||AC.state!=='running'&&Date.now()-lastRebuild>700)){rebuildAudio();return}
+    if(AC.state!=='running'){var pr=AC.resume();if(pr&&pr.catch)pr.catch(function(){})}
     if(MU.timer)MU.t=Math.max(MU.t,AC.currentTime+.08);
     musicSync();
   }catch(e){}
@@ -1363,11 +1364,20 @@ if(document.addEventListener){
     else wakeAudio(false);
   });
   window.addEventListener('pageshow',function(){audioStale=true;wakeAudio(false)});
-  /* the first touch after returning carries the permission to make sound: rebuild the engine right there if it is still not running */
   ['touchstart','touchend','pointerdown','pointerup','click'].forEach(function(ev){document.addEventListener(ev,function(){
     if(!AC)return;
-    if(AC.state!=='running')wakeAudio(true);
+    if(audioStale||AC.state!=='running')wakeAudio(true);
   },true)});
+  /* watchdog: if the audio clock stops moving while the page is in front, the next touch rebuilds the engine */
+  var wdT=-1,wdN=0;
+  setInterval(function(){
+    if(!AC||document.hidden||!sfxOn||audioStale)return;
+    try{
+      if(AC.state!=='running'){audioStale=true;return}
+      if(Math.abs(AC.currentTime-wdT)<.01){if(++wdN>=2)audioStale=true}else wdN=0;
+      wdT=AC.currentTime;
+    }catch(e){}
+  },1000);
 }
 
 /* little music notes drift up from the cat's head while the music plays */
