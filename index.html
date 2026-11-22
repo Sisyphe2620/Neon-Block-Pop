@@ -1161,7 +1161,7 @@ function fireball(x,z){
 
 /* ================= audio ================= */
 var AC=null,sfxOn=true;
-function ensureAudio(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC&&AC.state==='suspended')AC.resume()}catch(e){AC=null}musicSync()}
+function ensureAudio(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC&&AC.state!=='running')AC.resume()}catch(e){AC=null}musicSync()}   /* iOS reports 'interrupted' (not only 'suspended') after the page has been in the background */
 function tone(f,t0,d,type,g,f2){
   if(!AC||!sfxOn)return;
   try{
@@ -1332,9 +1332,24 @@ function musicSync(){
     }
   }catch(e){}
 }
-if(document.addEventListener)document.addEventListener('visibilitychange',function(){
-  if(!AC)return;try{if(document.hidden)AC.suspend();else AC.resume()}catch(e){}
-});
+/* coming back from another tab / app: browsers (iOS above all) keep the audio engine asleep until the next touch, so wake it on return AND on the first touch, and restart the music clock so it does not try to catch up on the time that was missed */
+function wakeAudio(){
+  if(!AC||document.hidden)return;
+  try{
+    if(AC.state==='closed'){AC=null;MU.m=null;MU.pg=null;MU.dl=null;if(MU.timer){clearInterval(MU.timer);MU.timer=null}ensureAudio();return}
+    if(AC.state!=='running'){var pr=AC.resume();if(pr&&pr.catch)pr.catch(function(){})}
+    if(MU.timer)MU.t=Math.max(MU.t,AC.currentTime+.08);
+    musicSync();
+  }catch(e){}
+}
+if(document.addEventListener){
+  document.addEventListener('visibilitychange',function(){
+    if(!AC)return;
+    try{if(document.hidden){if(MU.timer){clearInterval(MU.timer);MU.timer=null}}else wakeAudio()}catch(e){}
+  });
+  window.addEventListener('pageshow',wakeAudio);window.addEventListener('focus',wakeAudio);
+  ['touchstart','touchend','pointerdown','click'].forEach(function(ev){document.addEventListener(ev,function(){if(AC&&AC.state!=='running')wakeAudio()},true)});
+}
 
 /* little music notes drift up from the cat's head while the music plays */
 (function(){
