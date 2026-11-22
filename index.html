@@ -2077,7 +2077,7 @@ function frame(now){
   /* camera */
   if(orbit.auto&&!rot){orbit.az+=(.785-orbit.az)*.05;if(Math.abs(.785-orbit.az)<.003)orbit.auto=false}
   else if(!rot){orbit.az+=orbit.vaz;orbit.vaz*=.93;if(Math.abs(orbit.vaz)<.0001)orbit.vaz=0}
-  if(!rot&&!pinch&&!drag&&!orbit.auto&&!overlayOpen)orbit.az+=dt*.045;   /* idle: the board turns very slowly */
+  if(!rot&&!pinch&&!drag&&!orbit.auto&&!overlayOpen)orbit.az+=dt*.027;   /* idle: the board turns very slowly */
   shake.amp*=.9;if(shake.amp<.01)shake.amp=0;
   placeCamera();
 
