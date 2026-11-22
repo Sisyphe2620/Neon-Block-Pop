@@ -916,8 +916,8 @@ function updateTiles(){
       if(wk>.01){tmpC1.lerp(WAVE_RED,wk*.8);tmpC2.r+=WAVE_RED.r*wk*.3;tmpC2.g+=WAVE_RED.g*wk*.3;tmpC2.b+=WAVE_RED.b*wk*.3}
     }
     if(q.fl){
-      var fk=1-(nowMs()-q.fl.t0)/680;
-      if(fk>0){tmpC2.lerp(q.fl.col,Math.min(1,fk*1.4)).multiplyScalar(1+fk*1.6);tmpC1.lerp(q.fl.col,Math.min(1,fk*.8));q.mat.color.copy(tmpC1);q.mat.emissive.copy(tmpC2);continue}
+      var fk=1-(nowMs()-q.fl.t0)/900;
+      if(fk>0){var fs=Math.min(1,fk*1.8);FLC.copy(q.fl.col).multiplyScalar(.6);tmpC1.lerp(FLC,fs);tmpC2.lerp(q.fl.col,fs).multiplyScalar(1+.8*fk);   /* the tile itself turns a saturated neon colour and glows, then fades back to warm white */q.mat.color.copy(tmpC1);q.mat.emissive.copy(tmpC2);continue}
       q.fl=null;
     }
     q.mat.color.lerp(tmpC1,.22);q.mat.emissive.lerp(tmpC2,.22);
@@ -1735,6 +1735,7 @@ function barMat(hex){
   var tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;
   return new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.SrcAlphaFactor,blendDst:THREE.OneFactor,blendSrcAlpha:THREE.OneFactor,blendDstAlpha:THREE.OneFactor});
 }
+var FLC=new THREE.Color();
 var CYBER_FLASH=['#38D9FF','#FF3DF0','#B45CFF','#5C7BFF','#2DFFD0','#FF5CC8'];
 function flashTile(i,hex){var q=baseCells[i];if(q)q.fl={t0:nowMs(),col:col(hex)}}
 function lineFlash(isRow,idx,hex,delay){
