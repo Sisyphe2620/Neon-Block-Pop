@@ -916,8 +916,8 @@ function updateTiles(){
       if(wk>.01){tmpC1.lerp(WAVE_RED,wk*.8);tmpC2.r+=WAVE_RED.r*wk*.3;tmpC2.g+=WAVE_RED.g*wk*.3;tmpC2.b+=WAVE_RED.b*wk*.3}
     }
     if(q.fl){
-      var fk=1-(nowMs()-q.fl.t0)/520;
-      if(fk>0){tmpC2.lerp(q.fl.col,Math.min(1,fk*1.3)).multiplyScalar(1+fk*1.2);tmpC1.lerp(WHITE,fk*.45);q.mat.color.copy(tmpC1);q.mat.emissive.copy(tmpC2);continue}
+      var fk=1-(nowMs()-q.fl.t0)/680;
+      if(fk>0){tmpC2.lerp(q.fl.col,Math.min(1,fk*1.4)).multiplyScalar(1+fk*1.6);tmpC1.lerp(q.fl.col,Math.min(1,fk*.8));q.mat.color.copy(tmpC1);q.mat.emissive.copy(tmpC2);continue}
       q.fl=null;
     }
     q.mat.color.lerp(tmpC1,.22);q.mat.emissive.lerp(tmpC2,.22);
@@ -1735,6 +1735,7 @@ function barMat(hex){
   var tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;
   return new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.SrcAlphaFactor,blendDst:THREE.OneFactor,blendSrcAlpha:THREE.OneFactor,blendDstAlpha:THREE.OneFactor});
 }
+var CYBER_FLASH=['#38D9FF','#FF3DF0','#B45CFF','#5C7BFF','#2DFFD0','#FF5CC8'];
 function flashTile(i,hex){var q=baseCells[i];if(q)q.fl={t0:nowMs(),col:col(hex)}}
 function lineFlash(isRow,idx,hex,delay){
   later(delay,function(){
@@ -1868,7 +1869,7 @@ function zap(){tone(2600,0,.12,'sawtooth',.045,260);tone(1400,.03,.1,'square',.0
 function animateStep(s,t,x,z){
   var m=s.cell.mesh,col0=s.cell.color!=null?s.cell.color:0;
   if(!m)return;
-  later(t,function(){gapFlash=1});   /* the glowing seams between the tiles flare up as a block pops */
+  later(t,function(){flashTile(s.r*N+s.c,CYBER_FLASH[(Math.random()*CYBER_FLASH.length)|0])});   /* the tile under a popping block lights up in a random neon colour */
   if(s.kind==='clear'){
     tween(t,380,function(p){
       var sc=p<.2?1+.18*(p/.2):Math.max(.001,1.18*(1-ease((p-.2)/.8)));m.scale.setScalar(sc);m.rotation.y=p*2.4;m.position.y=ease(p)*.5;
