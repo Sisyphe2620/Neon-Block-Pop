@@ -1417,7 +1417,11 @@ function spawn(){
   do{
     var start=Math.floor(Math.random()*PAL.length);
     set=[0,1,2].map(function(i){
-      var rows=firstSet?(tutorial?TUT_SET[i]:FIRST_SET[i]):pickShape();
+      var rows;
+      if(firstSet&&tutorial){   /* lesson set: only the middle 3x2 guide piece is fixed, the left and right pieces are a random mix every game */
+        if(i===TUT_SLOT)rows=TUT_SET[1];
+        else{var gk=TUT_SET[1].join('/'),tt=0;do{rows=pickShape();tt++}while(tt<20&&(rows.join('/')===gk||(rows.join('').replace(/\./g,'').length>5)))}
+      }else rows=firstSet?FIRST_SET[i]:pickShape();
       var p=parsePiece(rows,(start+i*(1+Math.floor(Math.random()*2)))%PAL.length);
       if(!firstSet&&kinds.length&&sp<3&&Math.random()<.3){
         var q=p.cells[Math.floor(Math.random()*p.cells.length)];
