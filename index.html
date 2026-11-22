@@ -1345,13 +1345,16 @@ function rebuildAudio(){   /* last resort: the old engine will not wake (iOS 'in
   }catch(e){AC=null}
   lastRebuild=Date.now();audioStale=false;
   musicSync();
-  setTimeout(function(){if(AC&&AC.state!=='running')audioStale=true},700);   /* still asleep? then the next touch tries again */
+  var rn=0,rt=setInterval(function(){   /* keep nudging it awake for a few seconds; if it is still asleep the next touch tries again */
+    if(!AC||AC.state==='running'||++rn>10){clearInterval(rt);if(AC&&AC.state!=='running')audioStale=true;return}
+    try{var q=AC.resume();if(q&&q.catch)q.catch(function(){})}catch(e){}
+  },300);
 }
 function wakeAudio(fromTouch){
   if(!AC||document.hidden)return;
   try{
     /* after a trip to the background iOS can still say 'running' while nothing is audible, so the first touch always builds a fresh engine */
-    if(AC.state==='closed'||fromTouch&&(audioStale||AC.state!=='running'&&Date.now()-lastRebuild>700)){rebuildAudio();return}
+    if(AC.state==='closed'||fromTouch&&(audioStale||AC.state!=='running'&&Date.now()-lastRebuild>250)){rebuildAudio();return}
     if(AC.state!=='running'){var pr=AC.resume();if(pr&&pr.catch)pr.catch(function(){})}
     if(MU.timer)MU.t=Math.max(MU.t,AC.currentTime+.08);
     musicSync();
@@ -1364,7 +1367,11 @@ if(document.addEventListener){
     else wakeAudio(false);
   });
   window.addEventListener('pageshow',function(){audioStale=true;wakeAudio(false)});
-  ['touchstart','touchend','pointerdown','pointerup','click'].forEach(function(ev){document.addEventListener(ev,function(){
+  /* iOS only treats the END of a touch (touchend / click) as permission to make sound, so the engine is rebuilt there, not on touchstart */
+  ['touchstart','pointerdown'].forEach(function(ev){document.addEventListener(ev,function(){
+    if(AC&&AC.state!=='running'){try{var q=AC.resume();if(q&&q.catch)q.catch(function(){})}catch(e){}}
+  },true)});
+  ['touchend','click'].forEach(function(ev){document.addEventListener(ev,function(){
     if(!AC)return;
     if(audioStale||AC.state!=='running')wakeAudio(true);
   },true)});
@@ -1384,6 +1391,7 @@ if(document.addEventListener){
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v112 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -2391,5 +2399,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60">v111</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v112</div></body>
 </html>
