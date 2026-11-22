@@ -1368,16 +1368,25 @@ if(document.addEventListener){
     if(!AC)return;
     if(audioStale||AC.state!=='running')wakeAudio(true);
   },true)});
-  /* watchdog: if the audio clock stops moving while the page is in front, the next touch rebuilds the engine */
-  var wdT=-1,wdN=0;
+  /* Chrome (and others) may freeze the page without ever saying "hidden": notice it from the page lifecycle events, from a gap in our own timer, or from the audio clock falling behind the wall clock, and have the next touch build a fresh engine */
+  ['pagehide','freeze','blur'].forEach(function(ev){window.addEventListener(ev,function(){audioStale=true;if(MU.timer){clearInterval(MU.timer);MU.timer=null}})});
+  ['resume','focus'].forEach(function(ev){(ev==='resume'?document:window).addEventListener(ev,function(){wakeAudio(false)})});
+  var wdW=0,wdA=-1,wdN=0,wdAC=null;
   setInterval(function(){
-    if(!AC||document.hidden||!sfxOn||audioStale)return;
+    if(!AC||document.hidden||!sfxOn)return;
     try{
-      if(AC.state!=='running'){audioStale=true;return}
-      if(Math.abs(AC.currentTime-wdT)<.01){if(++wdN>=2)audioStale=true}else wdN=0;
-      wdT=AC.currentTime;
+      var nw=Date.now();
+      if(AC!==wdAC){wdAC=AC;wdA=-1;wdN=0}   /* a fresh engine starts its own clock */
+      if(wdW&&nw-wdW>1800)audioStale=true;                                   /* our own timer was frozen */
+      if(AC.state!=='running')audioStale=true;
+      else if(wdA>=0&&wdW){
+        var dw=(nw-wdW)/1000,da=AC.currentTime-wdA;
+        if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
+      }
+      wdW=nw;wdA=AC.currentTime;
+      if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
-  },1000);
+  },500);
 }
 
 /* little music notes drift up from the cat's head while the music plays */
@@ -2382,5 +2391,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-</body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60">v111</div></body>
 </html>
