@@ -1450,13 +1450,13 @@ function newGame(){
   musicUp();
   clearBoardMeshes();
   grid=emptyGrid();
-  tutEnd(false);tutorial=true;   /* every game opens with the lesson setup */
+  tutEnd(false);tutorial=(level<=1);   /* level 1 opens with the lesson setup; from level 2 the board starts empty */
   if(tutorial){   /* first ever game: two 3x3 blocks, top and bottom, leave a 3x2 gap that the 3x2 piece fills to clear three columns at once */
     for(var tr=0;tr<N;tr++)for(var tc=2;tc<5;tc++)if(tr<3||tr>4){var tcell={t:'cube',color:tr<3?4:5};grid[tr][tc]=tcell;addCellMesh(tcell,tr,tc)}
-  }else START.forEach(function(row,r){for(var c=0;c<N;c++){var cell=loadCell(row[c]);if(cell){grid[r][c]=cell;addCellMesh(cell,r,c)}}});
-  score=0;lines=0;coins=0;streak=0;won=false;over=false;overlayOpen=false;ovKind=null;firstDone=false;cancelDrag();introOn=true;firstSet=true;shuffles=3;shufUi();
+  }
+  score=0;lines=0;coins=0;streak=0;won=false;over=false;overlayOpen=false;ovKind=null;firstDone=false;cancelDrag();introOn=tutorial;firstSet=tutorial;shuffles=3;shufUi();
   $('ov').hidden=true;$('rs').hidden=true;$('lo').hidden=true;
-  $('hint').style.opacity=1;
+  $('hint').style.opacity=tutorial?1:0;
   spawn();updateHud(true);
   if(tutorial)tutBegin();
   orbit.az=.785+1.1;orbit.vaz=0;orbit.auto=true;
