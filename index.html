@@ -1379,6 +1379,8 @@ function clearBoardMeshes(){
   parts=[];tw=[];setHighlight([],'#ffffff');
 }
 function countSpecials(){var n=0;for(var r=0;r<N;r++)for(var c=0;c<N;c++){var x=grid[r][c];if(x&&(x.t==='chest'||x.t==='bomb'||x.t==='crystal'))n++}return n}
+var lastSetKey='';
+function shapeKey(p){return p.cells.map(function(c){return c.r+','+c.c}).join(';')}
 function pickShape(){
   var ws=SHAPES.map(function(s){var n=s.join('').replace(/\./g,'').length;return n<=4?3:(n<=5?2:1)});
   var tot=ws.reduce(function(a,b){return a+b},0),r=Math.random()*tot,i=0;
@@ -1424,12 +1426,14 @@ function spawn(){
       return p;
     });
     tries++;
-    var good;
+    var good,keys=set.map(shapeKey),sk=keys.slice().sort().join('|');
+    var fresh=firstSet||tries>=40||(keys[0]!==keys[1]&&keys[1]!==keys[2]&&keys[0]!==keys[2]&&sk!==lastSetKey);   /* a fresh mix every round: no twins in one set, never the same trio twice running */
     if(firstSet)good=true;
+    else if(!fresh)good=false;
     else if(tries<60)good=set.every(function(p){return anyFit(grid,p)})&&solvable(bgrid(grid),set,{n:4000});
     else good=set.some(function(p){return anyFit(grid,p)});
   }while(!good&&tries<100);
-  firstSet=false;
+  firstSet=false;lastSetKey=sk;
   pieces=set;
   for(var i=0;i<3;i++)setTray(i,pieces[i],true);
   later(900,checkLose);
