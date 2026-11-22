@@ -1457,7 +1457,9 @@ function playIntro(){intro.on=true;intro.t0=nowMs();orbit.az=.785;orbit.vaz=0;or
 var orbit={az:.785,el:.95,dist:30,vaz:0,vel:0,zoom:.68};
 var tmpV=new THREE.Vector3();
 function measure(){
-  W=window.innerWidth;H=window.innerHeight;
+  /* size everything from the canvas's own on-screen box, not window.innerHeight: in-app browsers (WeChat etc.) report an innerHeight that differs from the box position:fixed elements actually fill, which stretched the 3D layer against the background image */
+  var cr=canvas.getBoundingClientRect();
+  W=Math.round(cr.width)||window.innerWidth;H=Math.round(cr.height)||window.innerHeight;
   renderer.setSize(W,H,false);
   hudBottom=$('hud').getBoundingClientRect().bottom;
   var d=$('dock').getBoundingClientRect(),f={top:d.top-6};
@@ -1986,7 +1988,7 @@ function showOverlay(kind){
 var last=0;
 function frame(now){
   var dt=Math.min(.05,(now-last)/1000||.016);last=now;
-  if(Math.abs(($('hud').getBoundingClientRect().bottom)-hudBottom)>1)measure();
+  if(Math.abs(($('hud').getBoundingClientRect().bottom)-hudBottom)>1||Math.abs(canvas.clientWidth-W)>1||Math.abs(canvas.clientHeight-H)>1||Math.abs($('dock').getBoundingClientRect().top-trayRect.y)>1)measure();
 
   /* tweens */
   var cur=tw;tw=[];
@@ -2117,6 +2119,9 @@ function start(data){
   measure();
   if(data&&data.grid&&data.pieces)restore(data);else{level=1;applyBadge();newGame()}
   window.addEventListener('resize',function(){measure()});
+  window.addEventListener('orientationchange',function(){measure();setTimeout(measure,300);setTimeout(measure,900)});
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',function(){measure()});
+  window.addEventListener('load',function(){setTimeout(measure,200);setTimeout(measure,1200)});
   requestAnimationFrame(frame);
   finishLoading();
 }
