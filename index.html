@@ -685,8 +685,8 @@ function buildBaseGLB(){
     if(!cm)return;
     e.mesh.castShadow=false;e.mesh.receiveShadow=false;   /* the board tiles take no real-time shadows: the soft contact blob under each cube does that job, and shadow-map noise was speckling the glow */
     var mat=e.mesh.material.clone();e.mesh.material=mat;
-    /* light warm-white satin ceramic tiles (was dark navy metal) */
-    mat.color.copy(col('#E4D8C8'));mat.roughness=.4;mat.metalness=.04;mat.envMapIntensity=.55;
+    /* soft blue satin ceramic tiles, picked from the backdrop blues (the warm white was tiring to stare at) */
+    mat.color.copy(col('#6F8EDC'));mat.roughness=.4;mat.metalness=.04;mat.envMapIntensity=.55;
     baseCells[(+cm[1]-1)*N+(+cm[2]-1)]={mat:mat,base:mat.color.clone(),emi:mat.emissive.clone()};
   });
   return M.group;
@@ -886,7 +886,7 @@ function tileCompCol(hex){return compColC[hex]||(compColC[hex]=col(compHex(hex))
 function breath(i,t){return .5+.5*Math.sin(t*2.1+(i%N)*.32+((i/N)|0)*.27)}
 var spill=new Float32Array(N*N*3);
 var WAVE_COLS=[col('#38D9FF'),col('#FF3DF0'),col('#B45CFF')],WAVE_RED=WAVE_COLS[0],wv={ci:0,on:false,k:0,f:0,cr:0,cc:0,t0:0,dur:3200,next:0};
-var TILE_WARM=new THREE.Color(1,.86,.64).multiplyScalar(.13);   /* every board tile glows a dim warm white on its own */
+var TILE_WARM=new THREE.Color(.5,.66,1).multiplyScalar(.12);   /* every board tile glows a faint cool blue on its own */
 function updateTiles(){
   if(!baseCells.length||!grid)return;
   for(var rr=0;rr<N;rr++)for(var cc=0;cc<N;cc++){
