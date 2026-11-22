@@ -686,10 +686,10 @@ var CRYSTAL_TPL=null;
 try{CRYSTAL_TPL=glbModel(CRYSTAL_GLB,.94,0,{yup:true,smooth:true}).group;
   CRYSTAL_TPL.children.forEach(function(c){var n=c.name;c.renderOrder=n.indexOf('00_')===0?3:(n.indexOf('02_')===0?1:2)})}catch(e){CRYSTAL_TPL=null}
 var crys=[],cryUT={value:0};
-/* flowing-light crystal shader: rainbow thin-film colour drifting through the object, a travelling light streak, glitter and a neon rim */
+/* flowing-light crystal shader: cyber cyan-violet-magenta colour drifting through the object, a travelling light streak, glitter and a neon rim */
 var CRY_VS='varying vec3 vN;varying vec3 vV;varying vec3 vP;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);vP=position;gl_Position=projectionMatrix*mv;}';
 var CRY_FS='uniform float uT;uniform float uAlpha;uniform float uBase;uniform float uGain;uniform float uHue;uniform float uWhite;uniform float uFlash;varying vec3 vN;varying vec3 vV;varying vec3 vP;'+
-'vec3 pal(float h){return .5+.5*cos(6.2832*(h+vec3(0.,.33,.67)));}'+
+'vec3 pal(float h){float x=fract(h)*4.,i=floor(x),t=smoothstep(0.,1.,x-i);vec3 A=vec3(.2,.86,1.),B=vec3(.42,.45,1.),C=vec3(.72,.36,1.),D=vec3(1.,.25,.9);vec3 a=i<.5?A:(i<1.5?B:(i<2.5?C:D)),b=i<.5?B:(i<1.5?C:(i<2.5?D:A));return mix(a,b,t)*.9;}'+
 'void main(){vec3 n=normalize(vN);bool fr=gl_FrontFacing;if(!fr)n=-n;'+
 ' float d=clamp(dot(n,normalize(vV)),0.,1.),f=1.-d;'+
 ' float flow=dot(vP,vec3(1.1,.8,.9))*1.7+f*1.2+uT*.32+uHue;'+
