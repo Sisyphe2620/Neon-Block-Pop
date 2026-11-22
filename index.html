@@ -1333,11 +1333,25 @@ function musicSync(){
   }catch(e){}
 }
 /* coming back from another tab / app: browsers (iOS above all) keep the audio engine asleep until the next touch, so wake it on return AND on the first touch, and restart the music clock so it does not try to catch up on the time that was missed */
-function wakeAudio(){
+var audioStale=false,lastRebuild=0;
+function rebuildAudio(){   /* last resort: the old engine will not wake (iOS 'interrupted'), so make a brand-new one and rebuild the music graph on it */
+  try{if(AC)AC.close()}catch(e){}
+  AC=null;MU.m=null;MU.arp=null;MU.pg=null;MU.pad=null;MU.dl=null;MU.nb=null;
+  if(MU.timer){clearInterval(MU.timer);MU.timer=null}
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    var rs=AC.resume();if(rs&&rs.catch)rs.catch(function(){});
+    var ub=AC.createBuffer(1,1,22050),us=AC.createBufferSource();us.buffer=ub;us.connect(AC.destination);us.start(0);   /* silent blip: unlocks iOS inside the touch */
+  }catch(e){AC=null}
+  lastRebuild=Date.now();audioStale=false;
+  musicSync();
+}
+function wakeAudio(fromTouch){
   if(!AC||document.hidden)return;
   try{
-    if(AC.state==='closed'){AC=null;MU.m=null;MU.pg=null;MU.dl=null;if(MU.timer){clearInterval(MU.timer);MU.timer=null}ensureAudio();return}
-    if(AC.state!=='running'){var pr=AC.resume();if(pr&&pr.catch)pr.catch(function(){})}
+    if(AC.state==='running'){audioStale=false;if(MU.timer)MU.t=Math.max(MU.t,AC.currentTime+.08);musicSync();return}
+    if(AC.state==='closed'||audioStale&&fromTouch||fromTouch&&Date.now()-lastRebuild>700){rebuildAudio();return}
+    var pr=AC.resume();if(pr&&pr.catch)pr.catch(function(){});
     if(MU.timer)MU.t=Math.max(MU.t,AC.currentTime+.08);
     musicSync();
   }catch(e){}
@@ -1345,10 +1359,15 @@ function wakeAudio(){
 if(document.addEventListener){
   document.addEventListener('visibilitychange',function(){
     if(!AC)return;
-    try{if(document.hidden){if(MU.timer){clearInterval(MU.timer);MU.timer=null}}else wakeAudio()}catch(e){}
+    if(document.hidden){audioStale=true;if(MU.timer){clearInterval(MU.timer);MU.timer=null}}
+    else wakeAudio(false);
   });
-  window.addEventListener('pageshow',wakeAudio);window.addEventListener('focus',wakeAudio);
-  ['touchstart','touchend','pointerdown','click'].forEach(function(ev){document.addEventListener(ev,function(){if(AC&&AC.state!=='running')wakeAudio()},true)});
+  window.addEventListener('pageshow',function(){audioStale=true;wakeAudio(false)});
+  /* the first touch after returning carries the permission to make sound: rebuild the engine right there if it is still not running */
+  ['touchstart','touchend','pointerdown','pointerup','click'].forEach(function(ev){document.addEventListener(ev,function(){
+    if(!AC)return;
+    if(AC.state!=='running')wakeAudio(true);
+  },true)});
 }
 
 /* little music notes drift up from the cat's head while the music plays */
