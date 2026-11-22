@@ -1408,16 +1408,18 @@ function solvable(b,list,budget){
   }
   return false;
 }
+/* specials are introduced one per level: L1 none, L2 bombs, L3 crystals, L4 chests, L5+ all three */
+function specialKinds(){return level<=1?[]:level===2?['bomb']:level===3?['crystal']:level===4?['chest']:['chest','bomb','crystal']}
 function spawn(){
-  var tries=0,set,sp=countSpecials();
+  var tries=0,set,sp=countSpecials(),kinds=specialKinds();
   do{
     var start=Math.floor(Math.random()*PAL.length);
     set=[0,1,2].map(function(i){
       var rows=firstSet?(tutorial?TUT_SET[i]:FIRST_SET[i]):pickShape();
       var p=parsePiece(rows,(start+i*(1+Math.floor(Math.random()*2)))%PAL.length);
-      if(!firstSet&&sp<3&&Math.random()<.3){
+      if(!firstSet&&kinds.length&&sp<3&&Math.random()<.3){
         var q=p.cells[Math.floor(Math.random()*p.cells.length)];
-        var sr=Math.random();q.t=sr<.34?'chest':(sr<.67?'bomb':'crystal');sp++;
+        q.t=kinds[(Math.random()*kinds.length)|0];sp++;
       }
       return p;
     });
