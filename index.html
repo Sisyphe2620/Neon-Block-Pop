@@ -1436,7 +1436,7 @@ function newGame(){
   playIntro();
 }
 /* ---- first-game lesson ---- */
-function tutDone(){try{if(window.__tutDone)return true;return localStorage.getItem('nbp_tut')==='1'}catch(e){return !!window.__tutDone}}
+function tutDone(){return !!window.__tutDone}   /* the lesson is the first game of every visit (not remembered between visits) */
 function tutBegin(){
   $('tut').hidden=false;
   for(var r=TUT_R;r<TUT_R+2;r++)for(var c=TUT_C;c<TUT_C+3;c++){
@@ -1447,7 +1447,7 @@ function tutBegin(){
 function tutEnd(done){
   tutG.forEach(function(m){scene.remove(m)});tutG=[];
   $('tut').hidden=true;
-  if(tutorial&&done){window.__tutDone=true;try{localStorage.setItem('nbp_tut','1')}catch(e){}}
+  if(tutorial&&done)window.__tutDone=true;
   tutorial=false;
 }
 function tutTick(now){
