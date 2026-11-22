@@ -1423,7 +1423,7 @@ function newGame(){
   musicUp();
   clearBoardMeshes();
   grid=emptyGrid();
-  tutEnd(false);tutorial=!tutDone();
+  tutEnd(false);tutorial=true;   /* every game opens with the lesson setup */
   if(tutorial){   /* first ever game: two 3x3 blocks, top and bottom, leave a 3x2 gap that the 3x2 piece fills to clear three columns at once */
     for(var tr=0;tr<N;tr++)for(var tc=2;tc<5;tc++)if(tr<3||tr>4){var tcell={t:'cube',color:tr<3?4:5};grid[tr][tc]=tcell;addCellMesh(tcell,tr,tc)}
   }else START.forEach(function(row,r){for(var c=0;c<N;c++){var cell=loadCell(row[c]);if(cell){grid[r][c]=cell;addCellMesh(cell,r,c)}}});
