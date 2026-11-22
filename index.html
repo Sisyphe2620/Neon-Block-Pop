@@ -1413,7 +1413,8 @@ function trayScale(p){return Math.min(1.45,3.9/Math.max(p.w,p.h))}
 function setTray(i,p,animate){
   if(trayG[i]){trayScene.remove(trayG[i]);trayG[i]=null}
   if(!p)return;
-  var g=buildPiece(p),s=trayScale(p);
+  var inner=buildPiece(p),g=new THREE.Group(),s=trayScale(p);   /* outer group: place/scale/turn with the board; inner: shrinks a little when the turn makes the piece wider */
+  g.add(inner);g.userData.inner=inner;g.userData.p=p;
   g.position.set((i-1)*TRAYDX,0,0);g.userData.s=s;
   g.scale.setScalar(animate?.01:s);trayScene.add(g);trayG[i]=g;
   if(animate)tween(120+i*90,340,function(t){var e=ease(t);g.scale.setScalar(.01+(s-.01)*e*(1+.12*Math.sin(t*Math.PI)))});
@@ -2084,7 +2085,13 @@ function frame(now){
   placeCamera();
 
   /* tray bob */
-  for(var i=0;i<3;i++){var g=trayG[i];if(g&&g.visible){g.position.y=Math.sin(now/700+i*2)*.09;g.rotation.y=0}}
+  /* the tray pieces turn exactly like the board does, so they always show the board's orientation */
+  var cme=camera.matrixWorld.elements,tphi=Math.atan2(cme[2],cme[0]),tc=Math.abs(Math.cos(tphi)),ts=Math.abs(Math.sin(tphi));
+  for(var i=0;i<3;i++){var g=trayG[i];if(g&&g.visible){
+    g.position.y=Math.sin(now/700+i*2)*.09;g.rotation.y=tphi;
+    var tp=g.userData.p,tin=g.userData.inner;
+    if(tp&&tin){var ext=Math.max(tp.w*tc+tp.h*ts,tp.w*ts+tp.h*tc);tin.scale.setScalar(Math.min(1,Math.max(tp.w,tp.h)/ext))}
+  }}
 
   /* dragged piece */
   if(drag){
