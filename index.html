@@ -1336,7 +1336,7 @@ function musicSync(){
 /* coming back from another tab / app: browsers (iOS above all) keep the audio engine asleep until the next touch, so wake it on return AND on the first touch, and restart the music clock so it does not try to catch up on the time that was missed */
 var audioStale=false,lastRebuild=0;
 function rebuildAudio(){   /* last resort: the old engine will not wake (iOS 'interrupted'), so make a brand-new one and rebuild the music graph on it */
-  try{if(AC)AC.close()}catch(e){}
+  var oldAC=AC;if(oldAC)setTimeout(function(){try{oldAC.close()}catch(e){}},4000);   /* let anything already scheduled on the old engine finish */
   AC=null;MU.m=null;MU.arp=null;MU.pg=null;MU.pad=null;MU.dl=null;MU.nb=null;
   if(MU.timer){clearInterval(MU.timer);MU.timer=null}
   try{
@@ -1379,20 +1379,21 @@ if(document.addEventListener){
   /* Chrome (and others) may freeze the page without ever saying "hidden": notice it from the page lifecycle events, from a gap in our own timer, or from the audio clock falling behind the wall clock, and have the next touch build a fresh engine */
   ['pagehide','freeze','blur'].forEach(function(ev){window.addEventListener(ev,function(){audioStale=true;if(MU.timer){clearInterval(MU.timer);MU.timer=null}})});
   ['resume','focus'].forEach(function(ev){(ev==='resume'?document:window).addEventListener(ev,function(){wakeAudio(false)})});
-  var wdW=0,wdA=-1,wdN=0,wdAC=null;
+  var wdW=0,wdA=-1,wdN=0,wdAC=null,wdRan=false;
   setInterval(function(){
     if(!AC||document.hidden||!sfxOn)return;
     try{
       var nw=Date.now();
-      if(AC!==wdAC){wdAC=AC;wdA=-1;wdN=0}   /* a fresh engine starts its own clock */
+      if(AC!==wdAC){wdAC=AC;wdA=-1;wdN=0;wdRan=false}   /* a fresh engine starts its own clock */
       if(wdW&&nw-wdW>1800)audioStale=true;                                   /* our own timer was frozen */
-      if(AC.state!=='running')audioStale=true;
+      if(AC.state==='running')wdRan=true;
+      if(AC.state!=='running'){if(wdRan)audioStale=true}
       else if(wdA>=0&&wdW){
         var dw=(nw-wdW)/1000,da=AC.currentTime-wdA;
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
-      var vt=document.getElementById('vtag');if(vt)vt.textContent='v113 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v114 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -1955,6 +1956,7 @@ function clearJuice(n,first){
   }
 }
 function commit(slot,row,col0){
+  if(AC&&(audioStale||AC.state!=='running'))wakeAudio(true);   /* make sure the engine is awake BEFORE the clear sounds are scheduled on it */
   var p=pieces[slot];pieces[slot]=null;
   if(trayG[slot]){trayScene.remove(trayG[slot]);trayG[slot]=null}
   var gain=p.cells.length;
@@ -2409,5 +2411,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v113</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v114</div></body>
 </html>
