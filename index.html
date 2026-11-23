@@ -1393,7 +1393,7 @@ if(document.addEventListener){
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
-      var vt=document.getElementById('vtag');if(vt)vt.textContent='v114 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v115 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -1626,13 +1626,14 @@ function startShock(delay,cx,cz,amp){
   });
 }
 function setCoinsText(){$('coins').textContent=coinsShown;shufUi()}
-function flyCoins(x,z,n){
+function flyCoins(x,z,n,total){
+  total=total||n;var cb=Math.floor(total/n),cx2=total%n;
   var a=toScreen(x,.8,z),te=$('coins').getBoundingClientRect(),ex=te.left+te.width/2,ey=te.top+te.height/2;
   for(var i=0;i<n;i++)(function(i){
     var el=document.createElement('div');el.className='fcoin';document.body.appendChild(el);
     function land(){
       if(el.parentNode)el.parentNode.removeChild(el);
-      coinsShown=Math.min(coins,coinsShown+1);setCoinsText();bumpCoins();
+      coinsShown=Math.min(coins,coinsShown+cb+(i<cx2?1:0));setCoinsText();bumpCoins();
       tone(1000+i*110,0,.07,'sine',.06,1500+i*110);
     }
     if(!el.animate){land();return}
@@ -1993,13 +1994,17 @@ function commit(slot,row,col0){
     });
     gain+=Math.round(lineScore(n)*(1+.5*streak));
     coins+=coinGain;gain+=coinGain*10;
+    /* coins for clearing: 1 line = 1, 2 = 3, 3 = 6, 4 = 10, 5 = 15; +1 per combo step (max +3); +10 for wiping the board. A level of ~10 lines pays roughly 12-20, so one paid re-deal (12) is about a level's worth */
+    var lineCoins=n*(n+1)/2+Math.min(3,streak);
+    coins+=lineCoins;
     var empty=grid.every(function(row){return row.every(function(v){return !v})});
-    if(empty)gain+=100;
+    if(empty){gain+=100;lineCoins+=10;coins+=10}
     /* feedback scales with how big the clear is */
     var hs=n>=4?160:n===3?120:n===2?80:0;if(streak>=2)hs+=30;if(empty)hs=Math.max(hs,180);
     var pst=Math.min(1,.28+.2*n+(streak>=2?.15:0)+(empty?.3:0)),shAmp=Math.min(1.5,.55+.22*n+(empty?.4:0));
     later(425,function(){if(hs>0)hitStop(hs);punch=Math.max(punch,pst)});
     startShock(420,cx,cz,shAmp);
+    later(470,function(){flyCoins(cx,cz,Math.min(lineCoins,8),lineCoins)});
     mascotReact(n>=3||empty?2:(n>=2||streak>=1?1:0),430);
     popup('+'+gain,cx,1.4,cz,'');
     if(streak>=1)later(160,function(){popup('Combo ×'+(streak),cx,.6,cz,'small')});
@@ -2411,5 +2416,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v114</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v115</div></body>
 </html>
