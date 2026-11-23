@@ -181,6 +181,7 @@ body{
 #shuf.spin svg{animation:shspin .6s ease}
 @keyframes shspin{to{transform:rotate(360deg)}}
 #shuf .shn{position:absolute;right:-5px;bottom:-5px;min-width:22px;height:22px;border-radius:11px;background:linear-gradient(#ff6ad5,#d11fa5);color:#fff;font:700 13px/22px "Poppins","Nunito",system-ui,sans-serif;text-align:center;box-shadow:0 0 8px rgba(255,61,240,.7),0 0 0 2px #1a0f5a}
+#shuf .shn.cost{background:linear-gradient(#FFE27A,#E0A300);color:#4a2f00;padding:0 5px;box-shadow:0 0 8px rgba(255,200,60,.8),0 0 0 2px #1a0f5a}
 #shuf.off{filter:grayscale(1) brightness(.6);opacity:.7;box-shadow:none}
 #shuf.off svg{filter:none}
 #tut{position:fixed;inset:0;z-index:4;pointer-events:none}
@@ -349,7 +350,7 @@ function resolve(grid,rows,cols){
   return steps;
 }
 function lineScore(n){return [0,20,60,120,200,300][Math.min(n,5)]}
-var COINS_PER_CHEST=6;
+var COINS_PER_CHEST=6,SHUFFLE_COST=12;   /* coins are a wallet that carries over from level to level; once the 3 free re-deals are used a re-deal costs 12 coins (two chests) */
 /*END LOGIC*/
 
 (function(){
@@ -1391,7 +1392,7 @@ if(document.addEventListener){
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
-      var vt=document.getElementById('vtag');if(vt)vt.textContent='v112 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v113 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -1524,7 +1525,7 @@ function newGame(){
   if(tutorial){   /* first ever game: two 3x3 blocks, top and bottom, leave a 3x2 gap that the 3x2 piece fills to clear three columns at once */
     for(var tr=0;tr<N;tr++)for(var tc=2;tc<5;tc++)if(tr<3||tr>4){var tcell={t:'cube',color:tr<3?4:5};grid[tr][tc]=tcell;addCellMesh(tcell,tr,tc)}
   }
-  score=0;lines=0;coins=0;streak=0;won=false;over=false;overlayOpen=false;ovKind=null;firstDone=false;cancelDrag();introOn=tutorial;firstSet=tutorial;shuffles=3;shufUi();
+  score=0;lines=0;coins=coins||0;streak=0;won=false;over=false;overlayOpen=false;ovKind=null;firstDone=false;cancelDrag();introOn=tutorial;firstSet=tutorial;shuffles=3;shufUi();
   $('ov').hidden=true;$('rs').hidden=true;$('lo').hidden=true;
   $('hint').style.opacity=tutorial?1:0;
   spawn();updateHud(true);
@@ -1564,13 +1565,21 @@ function tutTick(now){
   else{x=e.x;y=e.y;o=1-(u-.9)/.1}
   h.style.opacity=o;h.style.transform='translate('+x+'px,'+y+'px)';
 }
-function shufUi(){$('shn').textContent=shuffles;$('shuf').classList.toggle('off',shuffles<=0)}
+function shufUi(){
+  var free=shuffles>0,b=$('shn');
+  b.textContent=free?shuffles:SHUFFLE_COST;b.classList.toggle('cost',!free);   /* gold badge = price in coins */
+  $('shuf').classList.toggle('off',!free&&(coins||0)<SHUFFLE_COST);
+}
 /* three re-deals per game: swap the three tray pieces for a fresh set (spawn() always makes sure at least one of them fits) */
 $('shuf').addEventListener('click',function(){
   if(overlayOpen||over||drag||!pieces||tutorial)return;
   ensureAudio();
-  if(shuffles<=0){tone(200,0,.12,'triangle',.05,140);return}
-  shuffles--;shufUi();
+  if(shuffles<=0){
+    if((coins||0)<SHUFFLE_COST){tone(200,0,.12,'triangle',.05,140);popup('Need '+SHUFFLE_COST+' coins',0,1.6,0,'small');return}
+    coins-=SHUFFLE_COST;coinsShown=Math.max(0,coinsShown-SHUFFLE_COST);setCoinsText();bumpCoins();
+    popup('-'+SHUFFLE_COST+' coins',0,1.6,0,'gold');tone(1568,0,.08,'sine',.06,1047);
+  }else shuffles--;
+  shufUi();
   var b=$('shuf');b.classList.remove('spin');void b.offsetWidth;b.classList.add('spin');
   whoosh(0,.3);[659,880,1175].forEach(function(f,i){tone(f,.05+i*.06,.18,'sine',.05)});
   firstSet=false;spawn();
@@ -1595,6 +1604,7 @@ function setProgress(anim){
 /* the numbers follow the action: score counts up and the bar fills once the blocks have popped (holdMs), not the moment a piece lands */
 function updateHud(silent,holdMs,big){
   var s=$('score'),cn=$('coins');
+  shufUi();
   if(silent){shownScore=score;coinsShown=coins;scoreBumpPend=0;s.textContent=score;cn.textContent=coins;lastProg=lines;setProgress(false);return}
   scoreHold=nowMs()+(holdMs||0);scoreBumpPend=big?2:1;
   if(holdMs>0)later(holdMs,function(){setProgress(true)});else setProgress(true);
@@ -1614,7 +1624,7 @@ function startShock(delay,cx,cz,amp){
     shockCi++;
   });
 }
-function setCoinsText(){$('coins').textContent=coinsShown}
+function setCoinsText(){$('coins').textContent=coinsShown;shufUi()}
 function flyCoins(x,z,n){
   var a=toScreen(x,.8,z),te=$('coins').getBoundingClientRect(),ex=te.left+te.width/2,ey=te.top+te.height/2;
   for(var i=0;i<n;i++)(function(i){
@@ -2399,5 +2409,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v112</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v113</div></body>
 </html>
