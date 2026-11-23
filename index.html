@@ -192,19 +192,24 @@ body{
 #tuthand{position:absolute;left:0;top:0;width:0;height:0;opacity:0}
 #tuthand i{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(56,217,255,.6) 45%,rgba(56,217,255,0) 72%)}
 #tuthand b{position:absolute;left:-6px;top:-4px;font-size:34px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));font-weight:400}
-#camtip{position:fixed;z-index:4;left:50%;transform:translateX(-50%) translateY(-6px);pointer-events:none;opacity:0;transition:opacity .5s,transform .5s;display:flex;gap:14px;align-items:center;padding:8px 16px;border-radius:99px;white-space:nowrap;
-  font:700 clamp(11px,3.3vw,14px) "Poppins","Nunito",system-ui,sans-serif;color:#E9F7FF;background:rgba(20,16,80,.62);border:1px solid rgba(120,220,255,.55);box-shadow:0 0 14px rgba(56,217,255,.45);text-shadow:0 0 6px #38D9FF}
-#camtip.show{opacity:1;transform:translateX(-50%)}
-#camtip span{display:flex;align-items:center;gap:6px}
-#camtip i{position:relative;display:inline-block;width:34px;height:18px}
-#camtip i:before,#camtip i:after{content:"";position:absolute;top:50%;width:11px;height:11px;margin-top:-5px;border-radius:50%;background:radial-gradient(circle,#fff,#38D9FF 70%);box-shadow:0 0 8px #38D9FF}
-#camtip .sw i:before{left:0;animation:ctsw 1.5s ease-in-out infinite}
-#camtip .sw i:after{display:none}
-#camtip .pc i:before{left:6px;animation:ctpl 1.5s ease-in-out infinite}
-#camtip .pc i:after{right:6px;animation:ctpr 1.5s ease-in-out infinite}
-@keyframes ctsw{0%{transform:translateX(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateX(23px);opacity:0}}
-@keyframes ctpl{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
-@keyframes ctpr{0%,100%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
+/* wordless camera lesson on level 1: a ghost hand swipes left-right (rotate), then two ghost hands pinch in and out (zoom) */
+#camdemo{position:fixed;left:0;top:0;width:0;height:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .4s}
+#camdemo.show{opacity:1}
+#camdemo .cd{position:absolute;left:0;top:0;width:0;height:0;opacity:0}
+#camdemo i{position:absolute;left:-28px;top:-28px;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.85) 0,rgba(56,217,255,.5) 45%,rgba(56,217,255,0) 72%)}
+#camdemo b{position:absolute;left:-12px;top:-8px;font-size:40px;line-height:1;font-weight:400;opacity:.78;filter:drop-shadow(0 2px 5px rgba(0,0,0,.45))}
+#camdemo .trail{position:absolute;left:-95px;top:-2px;width:190px;height:4px;border-radius:2px;background:linear-gradient(90deg,rgba(56,217,255,0),rgba(56,217,255,.7),rgba(255,61,240,.7),rgba(255,61,240,0));opacity:0}
+#camdemo .arr{position:absolute;top:-17px;font-size:28px;line-height:34px;color:#B8F8FF;text-shadow:0 0 8px #38D9FF;opacity:0}
+#camdemo.run .cd1{animation:cdone 8s ease-in-out 2 both}
+#camdemo.run .cd1 .trail,#camdemo.run .cd1 .arr{animation:cdtrail 8s ease-in-out 2 both}
+#camdemo.run .cd2{animation:cdtwo 8s ease-in-out 2 both}
+#camdemo.run .cd2 .l{animation:cdl 8s ease-in-out 2 both}
+#camdemo.run .cd2 .r{animation:cdr 8s ease-in-out 2 both}
+@keyframes cdone{0%{opacity:0;transform:translateX(-75px)}5%{opacity:1;transform:translateX(-75px)}17%{transform:translateX(75px)}29%{transform:translateX(-75px)}35%{opacity:1;transform:translateX(0)}38%,100%{opacity:0;transform:translateX(0)}}
+@keyframes cdtrail{0%{opacity:0}6%,30%{opacity:1}36%,100%{opacity:0}}
+@keyframes cdtwo{0%,41%{opacity:0}46%{opacity:1}80%{opacity:1}86%,100%{opacity:0}}
+@keyframes cdl{0%,46%{transform:translate(-14px,14px)}58%{transform:translate(-62px,62px)}70%{transform:translate(-14px,14px)}80%,100%{transform:translate(-14px,14px)}}
+@keyframes cdr{0%,46%{transform:translate(14px,-14px)}58%{transform:translate(62px,-62px)}70%{transform:translate(14px,-14px)}80%,100%{transform:translate(14px,-14px)}}
 #winb{position:fixed;inset:0;z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;font-family:"Poppins","Nunito",system-ui,sans-serif;text-align:center}
 #winb.show{opacity:1;transition:opacity .25s}
 #winb .wrays{position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;background:repeating-conic-gradient(from 0deg,rgba(120,220,255,.20) 0 6deg,rgba(255,80,230,0) 6deg 18deg);border-radius:50%;-webkit-mask-image:radial-gradient(circle,#000 0,transparent 42%);mask-image:radial-gradient(circle,#000 0,transparent 42%);opacity:0}
@@ -274,7 +279,7 @@ body{
 </header>
 <p id="hint" hidden></p>
 <div id="pops"></div>
-<div id="camtip"><span class="sw"><i></i>Swipe to rotate</span><span class="pc"><i></i>Pinch to zoom</span></div>
+<div id="camdemo"><div class="cd cd1"><div class="trail"></div><span class="arr" style="left:-112px">◀</span><span class="arr" style="left:96px">▶</span><i></i><b>👆</b></div><div class="cd cd2"><div class="l cd" style="opacity:1"><i></i><b>👆</b></div><div class="r cd" style="opacity:1"><i></i><b>👆</b></div></div></div>
 <div id="wflash"></div>
 <div id="winb"><div class="wrays"></div><div class="wl1" id="wl1">LEVEL 1</div><div class="wl2">CLEAR!</div><div class="wl3" id="wl3"></div></div>
 <div id="tut" hidden><div id="tuttxt">Drag this block into the gap!</div><div id="tuthand"><i></i><b>👆</b></div></div>
@@ -1428,7 +1433,7 @@ if(document.addEventListener){
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
-      var vt=document.getElementById('vtag');if(vt)vt.textContent='v117 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v118 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -1587,13 +1592,15 @@ function tutEnd(done){
 }
 /* first-time hint: the board can be turned with one finger and zoomed with two. Shown on level 1 once the fly-in has finished, gone as soon as the player does either (or after a few seconds) */
 var camTip={pend:false,on:false,t0:0};
-function camTipOff(){camTip.pend=false;if(camTip.on){camTip.on=false;var e=$('camtip');if(e)e.classList.remove('show')}}
+function camTipOff(){camTip.pend=false;if(camTip.on){camTip.on=false;var e=$('camdemo');if(e){e.classList.remove('show');setTimeout(function(){if(!camTip.on)e.classList.remove('run')},450)}}}
 function camTipTick(now){
-  var e=$('camtip');if(!e)return;
+  var e=$('camdemo');if(!e)return;
   if(camTip.pend&&!camTip.on&&!intro.on&&!overlayOpen){
-    camTip.on=true;camTip.t0=now;e.style.top=(hudBottom+10)+'px';e.classList.add('show');
+    camTip.on=true;camTip.t0=now;
+    e.style.left=(mainRect.x+mainRect.w/2)+'px';e.style.top=(mainRect.y+mainRect.h*.27)+'px';
+    e.classList.remove('run');void e.offsetWidth;e.classList.add('show','run');
   }
-  if(camTip.on&&(now-camTip.t0>9000||overlayOpen))camTipOff();
+  if(camTip.on&&(now-camTip.t0>16500||overlayOpen))camTipOff();
 }
 function tutTick(now){
   if(!tutorial)return;
@@ -2499,5 +2506,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v117</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v118</div></body>
 </html>
