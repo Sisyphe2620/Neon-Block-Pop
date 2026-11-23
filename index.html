@@ -200,16 +200,16 @@ body{
 #camdemo b{position:absolute;left:-12px;top:-8px;font-size:40px;line-height:1;font-weight:400;opacity:.78;filter:drop-shadow(0 2px 5px rgba(0,0,0,.45))}
 #camdemo .trail{position:absolute;left:-95px;top:-2px;width:190px;height:4px;border-radius:2px;background:linear-gradient(90deg,rgba(56,217,255,0),rgba(56,217,255,.7),rgba(255,61,240,.7),rgba(255,61,240,0));opacity:0}
 #camdemo .arr{position:absolute;top:-17px;font-size:28px;line-height:34px;color:#B8F8FF;text-shadow:0 0 8px #38D9FF;opacity:0}
-#camdemo.run .cd1{animation:cdone 8s ease-in-out 2 both}
-#camdemo.run .cd1 .trail,#camdemo.run .cd1 .arr{animation:cdtrail 8s ease-in-out 2 both}
-#camdemo.run .cd2{animation:cdtwo 8s ease-in-out 2 both}
-#camdemo.run .cd2 .l{animation:cdl 8s ease-in-out 2 both}
-#camdemo.run .cd2 .r{animation:cdr 8s ease-in-out 2 both}
-@keyframes cdone{0%{opacity:0;transform:translateX(-75px)}5%{opacity:1;transform:translateX(-75px)}17%{transform:translateX(75px)}29%{transform:translateX(-75px)}35%{opacity:1;transform:translateX(0)}38%,100%{opacity:0;transform:translateX(0)}}
-@keyframes cdtrail{0%{opacity:0}6%,30%{opacity:1}36%,100%{opacity:0}}
-@keyframes cdtwo{0%,41%{opacity:0}46%{opacity:1}80%{opacity:1}86%,100%{opacity:0}}
-@keyframes cdl{0%,46%{transform:translate(-14px,14px)}58%{transform:translate(-62px,62px)}70%{transform:translate(-14px,14px)}80%,100%{transform:translate(-14px,14px)}}
-@keyframes cdr{0%,46%{transform:translate(14px,-14px)}58%{transform:translate(62px,-62px)}70%{transform:translate(14px,-14px)}80%,100%{transform:translate(14px,-14px)}}
+#camdemo.k2 .cd1{animation:cdone 3.6s ease-in-out infinite both}
+#camdemo.k2 .cd1 .trail,#camdemo.k2 .cd1 .arr{animation:cdtrail 3.6s ease-in-out infinite both}
+#camdemo.k3 .cd2{animation:cdtwo 3.4s ease-in-out infinite both}
+#camdemo.k3 .cd2 .l{animation:cdl 3.4s ease-in-out infinite both}
+#camdemo.k3 .cd2 .r{animation:cdr 3.4s ease-in-out infinite both}
+@keyframes cdone{0%{opacity:0;transform:translateX(-75px)}8%{opacity:1;transform:translateX(-75px)}40%{transform:translateX(75px)}72%{transform:translateX(-75px)}86%{opacity:1}96%,100%{opacity:0;transform:translateX(-75px)}}
+@keyframes cdtrail{0%{opacity:0}10%,80%{opacity:1}92%,100%{opacity:0}}
+@keyframes cdtwo{0%{opacity:0}10%{opacity:1}84%{opacity:1}96%,100%{opacity:0}}
+@keyframes cdl{0%,10%{transform:translate(-14px,14px)}45%{transform:translate(-62px,62px)}80%,100%{transform:translate(-14px,14px)}}
+@keyframes cdr{0%,10%{transform:translate(14px,-14px)}45%{transform:translate(62px,-62px)}80%,100%{transform:translate(14px,-14px)}}
 #winb{position:fixed;inset:0;z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;font-family:"Poppins","Nunito",system-ui,sans-serif;text-align:center}
 #winb.show{opacity:1;transition:opacity .25s}
 #winb .wrays{position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;background:repeating-conic-gradient(from 0deg,rgba(120,220,255,.20) 0 6deg,rgba(255,80,230,0) 6deg 18deg);border-radius:50%;-webkit-mask-image:radial-gradient(circle,#000 0,transparent 42%);mask-image:radial-gradient(circle,#000 0,transparent 42%);opacity:0}
@@ -1433,7 +1433,7 @@ if(document.addEventListener){
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
-      var vt=document.getElementById('vtag');if(vt)vt.textContent='v118 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v119 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -1571,7 +1571,7 @@ function newGame(){
   $('hint').style.opacity=tutorial?1:0;
   spawn();updateHud(true);
   if(tutorial)tutBegin();
-  camTipOff();camTip.pend=(level<=1);   /* only the very first level teaches the camera gestures */
+  camHide();camTip.rotAcc=0;camTip.zoomAcc=0;camTip.stage=(level<=1&&!(camTip.didRot&&camTip.didPinch))?1:0;   /* only the very first level teaches the camera gestures */
   orbit.az=.785+1.1;orbit.vaz=0;orbit.auto=true;
   playIntro();
 }
@@ -1587,20 +1587,30 @@ function tutBegin(){
 function tutEnd(done){
   tutG.forEach(function(m){scene.remove(m)});tutG=[];
   $('tut').hidden=true;
-  if(tutorial&&done)window.__tutDone=true;
+  if(tutorial&&done){window.__tutDone=true;camAfterLesson()}
   tutorial=false;
 }
 /* first-time hint: the board can be turned with one finger and zoomed with two. Shown on level 1 once the fly-in has finished, gone as soon as the player does either (or after a few seconds) */
-var camTip={pend:false,on:false,t0:0};
-function camTipOff(){camTip.pend=false;if(camTip.on){camTip.on=false;var e=$('camdemo');if(e){e.classList.remove('show');setTimeout(function(){if(!camTip.on)e.classList.remove('run')},450)}}}
+/* camera lessons, strictly in order and only on level 1: (1) the block lesson, (2) swipe demo until the player really rotates the board, (3) pinch demo until the player really zooms. A demo never goes away by itself, only when the player has done the move. */
+var camTip={stage:0,showAt:0,on:false,rotAcc:0,zoomAcc:0,didRot:false,didPinch:false};
+function camHide(){camTip.on=false;var e=$('camdemo');if(e)e.classList.remove('show','k2','k3')}
+function camAfterLesson(){   /* the player just cleared the lesson */
+  if(camTip.stage!==1)return;
+  camTip.stage=camTip.didRot?(camTip.didPinch?4:3):2;camTip.showAt=nowMs()+2200;
+}
+function camAct(kind,amt){
+  if(camTip.stage<2||camTip.stage>3)return;
+  if(kind==='rot'){camTip.rotAcc+=Math.abs(amt);if(camTip.rotAcc>70){camTip.didRot=true;if(camTip.stage===2){camHide();camTip.stage=camTip.didPinch?4:3;camTip.showAt=nowMs()+1200}}}
+  else{camTip.zoomAcc+=Math.abs(amt);if(camTip.zoomAcc>.12){camTip.didPinch=true;if(camTip.stage===3){camHide();camTip.stage=4}}}
+}
 function camTipTick(now){
   var e=$('camdemo');if(!e)return;
-  if(camTip.pend&&!camTip.on&&!intro.on&&!overlayOpen){
-    camTip.on=true;camTip.t0=now;
+  var want=(camTip.stage===2||camTip.stage===3)&&now>=camTip.showAt&&!intro.on&&!overlayOpen&&!drag&&!rot&&!pinch;
+  if(want&&!camTip.on){
+    camTip.on=true;
     e.style.left=(mainRect.x+mainRect.w/2)+'px';e.style.top=(mainRect.y+mainRect.h*.27)+'px';
-    e.classList.remove('run');void e.offsetWidth;e.classList.add('show','run');
-  }
-  if(camTip.on&&(now-camTip.t0>16500||overlayOpen))camTipOff();
+    e.classList.remove('show','k2','k3');void e.offsetWidth;e.classList.add('show',camTip.stage===2?'k2':'k3');
+  }else if(camTip.on&&(overlayOpen||drag||intro.on))camHide();   /* paused, comes back when the board is free again */
 }
 function tutTick(now){
   if(!tutorial)return;
@@ -1874,7 +1884,7 @@ canvas.addEventListener('pointerdown',function(e){
     if(ids.length>=2){
       var a=pts[ids[0]],b=pts[ids[1]];
       pinch={a:ids[0],b:ids[1],d0:Math.max(20,Math.hypot(a.x-b.x,a.y-b.y)),z0:orbit.zoom};
-      rot=null;orbit.vaz=0;camTipOff();
+      rot=null;orbit.vaz=0;
       try{canvas.setPointerCapture(e.pointerId)}catch(err){}
     }
     e.preventDefault();return;
@@ -1895,7 +1905,7 @@ canvas.addEventListener('pointerdown',function(e){
     tone(520,0,.06,'sine',.06,900);tone(1040,.04,.08,'triangle',.035,1500);
   }else{
     pts={};pts[e.pointerId]={x:e.clientX,y:e.clientY};
-    rot={id:e.pointerId,x:e.clientX,y:e.clientY};orbit.vaz=0;orbit.auto=false;camTipOff();
+    rot={id:e.pointerId,x:e.clientX,y:e.clientY};orbit.vaz=0;orbit.auto=false;
     try{canvas.setPointerCapture(e.pointerId)}catch(err){}
   }
   e.preventDefault();
@@ -1904,14 +1914,14 @@ canvas.addEventListener('pointermove',function(e){
   if(pts[e.pointerId]){pts[e.pointerId].x=e.clientX;pts[e.pointerId].y=e.clientY}
   if(pinch){
     if(String(e.pointerId)===pinch.a||String(e.pointerId)===pinch.b){
-      orbit.zoom=clamp(pinch.z0*pinch.d0/pinchDist(),.45,1.5);orbit.vaz=0;
+      var zo=orbit.zoom;orbit.zoom=clamp(pinch.z0*pinch.d0/pinchDist(),.45,1.5);orbit.vaz=0;camAct('zoom',orbit.zoom-zo);
     }
     e.preventDefault();return;
   }
   if(drag&&e.pointerId===drag.id){drag.x=e.clientX;drag.y=e.clientY;e.preventDefault();return}
   if(rot&&e.pointerId===rot.id){
     var dx=e.clientX-rot.x,dy=e.clientY-rot.y;rot.x=e.clientX;rot.y=e.clientY;
-    orbit.az-=dx*.009;orbit.vaz=-dx*.009;orbit.el=clamp(orbit.el+dy*.006,.5,1.25);
+    camAct('rot',dx);orbit.az-=dx*.009;orbit.vaz=-dx*.009;orbit.el=clamp(orbit.el+dy*.006,.5,1.25);
     e.preventDefault();
   }
 });
@@ -1932,7 +1942,7 @@ function release(e,cancel){
 }
 canvas.addEventListener('pointerup',function(e){release(e,false)});
 canvas.addEventListener('pointercancel',function(e){release(e,true)});
-canvas.addEventListener('wheel',function(e){orbit.zoom=clamp(orbit.zoom*Math.exp(e.deltaY*.0012),.45,1.5);e.preventDefault()},{passive:false});
+canvas.addEventListener('wheel',function(e){camAct('zoom',e.deltaY*.0012*2);orbit.zoom=clamp(orbit.zoom*Math.exp(e.deltaY*.0012),.45,1.5);e.preventDefault()},{passive:false});
 canvas.addEventListener('contextmenu',function(e){e.preventDefault()});
 
 $('mute').addEventListener('click',function(){sfxOn=!sfxOn;$('muteTxt').textContent='Sound '+(sfxOn?'on':'off');$('mute').classList.toggle('off',!sfxOn);ensureAudio()});
@@ -2506,5 +2516,5 @@ var fontReady=document.fonts&&document.fonts.load?document.fonts.load('800 20px 
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v118</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v119</div></body>
 </html>
