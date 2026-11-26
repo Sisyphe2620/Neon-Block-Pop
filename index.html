@@ -1437,7 +1437,7 @@ if(document.addEventListener){
         if(da<dw*.5){if(++wdN>=2)audioStale=true}else wdN=0;                 /* audio clock not keeping up */
       }
       wdW=nw;wdA=AC.currentTime;
-      var vt=document.getElementById('vtag');if(vt)vt.textContent='v122 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
+      var vt=document.getElementById('vtag');if(vt)vt.textContent='v123 '+AC.state.charAt(0)+(audioStale?'!':'')+(MU.timer?'♪':'');
       if(audioStale&&!MU.timer)musicSync();
     }catch(e){}
   },500);
@@ -2397,7 +2397,6 @@ function frame(now){
   /* camera */
   if(orbit.auto&&!rot){orbit.az+=(.785-orbit.az)*.05;if(Math.abs(.785-orbit.az)<.003)orbit.auto=false}
   else if(!rot){orbit.az+=orbit.vaz;orbit.vaz*=.93;if(Math.abs(orbit.vaz)<.0001)orbit.vaz=0}
-  if(!rot&&!pinch&&!drag&&!orbit.auto&&!overlayOpen)orbit.az+=dt*.027;   /* idle: the board turns very slowly */
   shake.amp*=.9;if(shake.amp<.01)shake.amp=0;
   placeCamera();
 
@@ -2530,5 +2529,5 @@ try{if(document.fonts&&document.fonts.load){document.fonts.load('900 40px "Orbit
 Promise.race([fontReady,new Promise(function(r){setTimeout(r,1200)})]).then(boot,boot);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v122</div></body>
+<div style="position:fixed;right:8px;bottom:4px;font:10px/1 sans-serif;color:rgba(255,255,255,.3);pointer-events:none;z-index:60" id="vtag">v123</div></body>
 </html>
